@@ -316,7 +316,6 @@
           <p class="tree-meta">${escapeHtml(tree.scientific_name || "No species")} • ${escapeHtml(tree.tree_id || "No ID")} • ${escapeHtml(tree.location_name || "No location")}</p>
           <div class="tree-link-row">
             <a class="mini-link" href="${escapeHtml(publicTreeUrl(tree))}">Open tree page</a>
-            <a class="mini-link" href="#" onclick="copyTreeLink('${escapeHtml(tree.tree_id)}'); return false;">Copy NFC link</a>
           </div>
         </div>
       `).join("");
@@ -343,7 +342,6 @@
       const tree = allTrees.find(t => t.tree_id === treeId) || filteredTrees[0];
       if (!tree) { detail.innerHTML = `<div class="muted-box">No tree selected.</div>`; return; }
       const mapLink = makeMapLink(tree);
-      const publicUrl = absoluteTreeUrl(tree);
       detail.innerHTML = `
         <div class="tag">Tree ID: ${escapeHtml(tree.tree_id || "N/A")}</div>
         <h3>${escapeHtml(tree.common_name || "Unnamed Tree")}</h3>
@@ -359,13 +357,10 @@
         <div class="desc">${escapeHtml(tree.notes || "Notes can be added later from your CSV.")}</div>
         <div class="actions">
           <a class="button primary" href="${escapeHtml(publicTreeUrl(tree))}">Open individual tree page</a>
-          <a class="button secondary" href="#" onclick="copyTreeLink('${escapeHtml(tree.tree_id)}'); return false;">Copy public link</a>
           ${mapLink ? `<a class="button secondary" href="${escapeHtml(mapLink)}" target="_blank" rel="noopener noreferrer">Open map</a>` : ``}
         </div>
         <div class="muted-box">
-          NFC/public URL for this tree:<br>
-          <code>${escapeHtml(publicUrl)}</code><br><br>
-          This page is generated from the master CSV row using <code>tree.html?id=${escapeHtml(tree.tree_id || "")}</code>.
+          This preview is generated from the master CSV row. Visitors only see the tree content page when they open a tree link.
         </div>
       `;
     }
