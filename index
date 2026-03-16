@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campus Tree Management | Salem State Draft</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --line:#d8dfeb;
+      --text:#12233d;
+      --muted:#5e6f8c;
+      --navy:#002855;
+      --navy-2:#0a3970;
+      --orange:#f58220;
+      --orange-soft:#fff2e6;
+      --shadow:0 14px 34px rgba(0,33,71,.10);
+      --radius:18px;
+      --success:#1d6f42;
+      --warn:#8a4b00;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      color:var(--text);
+      background:linear-gradient(180deg,#eef3fb 0%, var(--bg) 100%);
+    }
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:24px 16px 56px;
+    }
+    .hero{
+      background:linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+      color:#fff;
+      border-radius:30px;
+      padding:30px;
+      box-shadow:var(--shadow);
+      margin-bottom:22px;
+    }
+    .hero-badge{
+      display:inline-block;
+      background:rgba(245,130,32,.16);
+      color:#ffd3a8;
+      border:1px solid rgba(255,255,255,.12);
+      padding:7px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.04em;
+      margin-bottom:14px;
+      text-transform:uppercase;
+    }
+    .hero h1{
+      margin:0 0 10px;
+      font-size:clamp(30px, 5vw, 46px);
+      line-height:1.05;
+    }
+    .hero p{
+      margin:0;
+      max-width:820px;
+      color:#dbe7f7;
+      font-size:17px;
+    }
+    .hero-note{
+      margin-top:16px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.08);
+      color:#f3f7fd;
+      font-size:14px;
+    }
+    .notice{
+      background:var(--orange-soft);
+      color:var(--warn);
+      border:1px solid #f4c596;
+      border-radius:14px;
+      padding:14px 16px;
+      margin:0 0 20px;
+    }
+    .toolbar{
+      display:grid;
+      grid-template-columns:1.3fr 1fr 1fr;
+      gap:12px;
+      margin-bottom:20px;
+    }
+    .input,.select,.button,.file-input{
+      width:100%;
+      padding:14px 16px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:var(--card);
+      color:var(--text);
+      font-size:15px;
+    }
+    .button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      font-weight:700;
+      cursor:pointer;
+      text-decoration:none;
+    }
+    .button.primary{
+      background:var(--navy);
+      color:#fff;
+      border-color:var(--navy);
+    }
+    .button.secondary{
+      background:#fff;
+      color:var(--navy);
+    }
+    .button.orange{
+      background:var(--orange);
+      color:#fff;
+      border-color:var(--orange);
+    }
+    .layout{
+      display:grid;
+      grid-template-columns:1.05fr .95fr;
+      gap:22px;
+    }
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .panel-head{
+      padding:18px 20px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .panel-head h2{
+      margin:0;
+      font-size:22px;
+      color:var(--navy);
+    }
+    .subtle{
+      color:var(--muted);
+      font-size:14px;
+    }
+    .tree-list{
+      max-height:64vh;
+      overflow:auto;
+    }
+    .tree-item{
+      padding:16px 18px;
+      border-bottom:1px solid var(--line);
+      cursor:pointer;
+      transition:background .15s ease, border-left-color .15s ease;
+      border-left:4px solid transparent;
+    }
+    .tree-item:hover,
+    .tree-item.active{
+      background:#f6f9fe;
+      border-left-color:var(--orange);
+    }
+    .tree-title{
+      margin:0 0 4px;
+      font-weight:700;
+    }
+    .tree-meta{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+    }
+    .detail{
+      padding:22px;
+    }
+    .tag{
+      display:inline-block;
+      background:#e8f0fb;
+      color:var(--navy);
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      margin-bottom:12px;
+    }
+    .detail h3{
+      margin:0 0 6px;
+      font-size:34px;
+      color:var(--navy);
+    }
+    .latin{
+      margin:0 0 16px;
+      font-style:italic;
+      color:var(--muted);
+      font-size:19px;
+    }
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin:18px 0;
+    }
+    .stat{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      background:#fbfcff;
+    }
+    .label{
+      font-size:12px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      margin-bottom:6px;
+    }
+    .value{
+      font-size:18px;
+      font-weight:700;
+    }
+    .desc{
+      line-height:1.65;
+      white-space:pre-wrap;
+    }
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:20px;
+    }
+    .muted-box{
+      margin-top:16px;
+      padding:14px;
+      border-radius:14px;
+      background:#f8fafd;
+      border:1px dashed var(--line);
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.55;
+    }
+    .admin-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+      padding:20px;
+    }
+    .admin-card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      background:#fcfdff;
+    }
+    .admin-card h3{
+      margin:0 0 10px;
+      font-size:18px;
+      color:var(--navy);
+    }
+    .admin-card p{
+      margin:0 0 12px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.55;
+    }
+    .stack{display:grid; gap:10px;}
+    .status{
+      display:inline-block;
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      background:#edf7f1;
+      color:var(--success);
+    }
+    .status.locked{
+      background:#fff2e6;
+      color:var(--warn);
+    }
+    .helper{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+    }
+    .small{
+      font-size:13px;
+      color:var(--muted);
+    }
+    code{
+      background:#eef3fb;
+      color:var(--navy);
+      padding:2px 6px;
+      border-radius:6px;
+    }
+    .hidden{display:none!important}
+    .footer-note{
+      margin-top:18px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+    }
+    @media (max-width: 960px){
+      .layout{grid-template-columns:1fr}
+      .toolbar{grid-template-columns:1fr}
+      .admin-grid{grid-template-columns:1fr}
+      .tree-list{max-height:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-badge">Salem State–style draft</div>
+      <h1>Campus Tree Management Site</h1>
+      <p>
+        This version uses a navy-and-orange visual theme and turns the draft into a staff-facing management site.
+        It still works as a static HTML prototype and can later connect to your real tree CSV.
+      </p>
+      <div class="hero-note">
+        Important: the password section below is a <strong>front-end prototype only</strong>. In a plain HTML site, this is not real security.
+        For real password protection, the host must provide authentication.
+      </div>
+    </section>
+
+    <div id="notice" class="notice">
+      No CSV loaded yet. The site is showing built-in sample records so you can test the design and workflow.
+    </div>
+
+    <div class="toolbar">
+      <input id="searchBox" class="input" type="text" placeholder="Search by ID, common name, scientific name, or location">
+      <select id="speciesFilter" class="select">
+        <option value="">All species</option>
+      </select>
+      <select id="healthFilter" class="select">
+        <option value="">All health statuses</option>
+      </select>
+    </div>
+
+    <div class="layout">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Tree Inventory</h2>
+          <div class="subtle"><span id="countLabel">0</span> trees shown</div>
+        </div>
+        <div id="treeList" class="tree-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Tree Details</h2>
+          <div class="subtle">Staff preview</div>
+        </div>
+        <div id="detail" class="detail"></div>
+      </section>
+    </div>
+
+    <div style="height:22px"></div>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Management Access</h2>
+        <div id="lockStatus" class="status locked">Locked</div>
+      </div>
+
+      <div class="admin-grid">
+        <div class="admin-card">
+          <h3>Password Gate</h3>
+          <p>Use this to simulate a staff-only section in the prototype.</p>
+          <div class="stack">
+            <input id="passwordInput" class="input" type="password" placeholder="Enter management password">
+            <button id="unlockBtn" class="button primary" type="button">Unlock management tools</button>
+            <div class="helper">
+              Demo password for this prototype: <code>salemtrees2026</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <h3>Data Import</h3>
+          <p>Once unlocked, staff can load a local CSV file to preview updates in the browser.</p>
+          <div id="importLockedMsg" class="helper">
+            Upload is locked until the password section is opened.
+          </div>
+          <div id="importTools" class="stack hidden">
+            <input id="csvUpload" class="file-input" type="file" accept=".csv">
+            <div class="small">Load a CSV from your computer to preview updates in this browser session.</div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <h3>Edit Selected Tree</h3>
+          <p>These fields let you test editing a tree record after unlocking the page.</p>
+          <div id="editLockedMsg" class="helper">
+            Editing is locked until the password section is opened.
+          </div>
+          <div id="editTools" class="stack hidden">
+            <input id="editCommonName" class="input" type="text" placeholder="Common name">
+            <input id="editScientificName" class="input" type="text" placeholder="Scientific name">
+            <input id="editHealth" class="input" type="text" placeholder="Health">
+            <textarea id="editNotes" class="input" rows="5" placeholder="Notes" style="resize:vertical"></textarea>
+            <button id="saveTreeBtn" class="button orange" type="button">Apply changes to selected tree</button>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <h3>Export</h3>
+          <p>After making edits, export the updated records as a fresh CSV.</p>
+          <div id="exportLockedMsg" class="helper">
+            Export is locked until the password section is opened.
+          </div>
+          <div id="exportTools" class="stack hidden">
+            <button id="downloadCsvBtn" class="button secondary" type="button">Download updated CSV</button>
+            <div class="small">This updates only the downloaded file. A static HTML page cannot save directly back to a live website.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-note">
+      Salem State’s athletics site and university materials refer to the school community as the <strong>Blue and Orange</strong>,
+      which is the basis for this theme.
+    </div>
+  </div>
+
+  <script>
+    const DEMO_PASSWORD = "salemtrees2026";
+
+    const sampleTrees = [
+      {
+        tree_id: "T001",
+        common_name: "Northern Red Oak",
+        scientific_name: "Quercus rubra",
+        planting_year: "1998",
+        dbh: "48 cm",
+        height: "18 m",
+        health: "Good",
+        location_name: "Library Walk",
+        notes: "Large shade tree with a broad canopy. Healthy structure and strong seasonal color.",
+        lat: "42.5033",
+        lon: "-70.8890",
+        map_link: ""
+      },
+      {
+        tree_id: "T002",
+        common_name: "Sugar Maple",
+        scientific_name: "Acer saccharum",
+        planting_year: "2005",
+        dbh: "30 cm",
+        height: "12 m",
+        health: "Fair",
+        location_name: "Science Quad",
+        notes: "Good form overall. Monitor bark damage on the lower trunk.",
+        lat: "42.5037",
+        lon: "-70.8885",
+        map_link: ""
+      },
+      {
+        tree_id: "T003",
+        common_name: "Eastern White Pine",
+        scientific_name: "Pinus strobus",
+        planting_year: "2012",
+        dbh: "22 cm",
+        height: "10 m",
+        health: "Excellent",
+        location_name: "North Residence Lawn",
+        notes: "Young conifer in open lawn setting. Fast growth and healthy crown.",
+        lat: "42.5042",
+        lon: "-70.8880",
+        map_link: ""
+      }
+    ];
+
+    let allTrees = [];
+    let filteredTrees = [];
+    let activeTreeId = null;
+    let unlocked = false;
+
+    function normalizeKey(s) {
+      return String(s || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^\w]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function csvToObjects(text) {
+      const rows = [];
+      let row = [];
+      let field = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            field += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === "," && !inQuotes) {
+          row.push(field);
+          field = "";
+        } else if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") i++;
+          row.push(field);
+          if (row.some(cell => String(cell).trim() !== "")) rows.push(row);
+          row = [];
+          field = "";
+        } else {
+          field += char;
+        }
+      }
+
+      if (field.length || row.length) {
+        row.push(field);
+        if (row.some(cell => String(cell).trim() !== "")) rows.push(row);
+      }
+
+      if (!rows.length) return [];
+      const headers = rows[0].map(h => normalizeKey(h));
+
+      return rows.slice(1).map(cols => {
+        const obj = {};
+        headers.forEach((h, idx) => obj[h] = (cols[idx] || "").trim());
+        return obj;
+      });
+    }
+
+    function remapTree(obj) {
+      return {
+        tree_id: obj.tree_id || obj.id || "",
+        common_name: obj.common_name || obj.name || "",
+        scientific_name: obj.scientific_name || obj.species || "",
+        planting_year: obj.planting_year || obj.year_planted || "",
+        dbh: obj.dbh || obj.diameter || "",
+        height: obj.height || "",
+        health: obj.health || obj.condition || "",
+        location_name: obj.location_name || obj.location || "",
+        notes: obj.notes || obj.description || "",
+        lat: obj.lat || obj.latitude || "",
+        lon: obj.lon || obj.longitude || "",
+        map_link: obj.map_link || ""
+      };
+    }
+
+    function makeMapLink(tree) {
+      if (tree.map_link) return tree.map_link;
+      if (tree.lat && tree.lon) return `https://maps.google.com/?q=${encodeURIComponent(tree.lat)},${encodeURIComponent(tree.lon)}`;
+      return "";
+    }
+
+    function uniqSorted(values) {
+      return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    }
+
+    function fillFilters(trees) {
+      const speciesValues = uniqSorted(trees.map(t => t.common_name));
+      const healthValues = uniqSorted(trees.map(t => t.health));
+
+      speciesFilter.innerHTML = `<option value="">All species</option>` +
+        speciesValues.map(v => `<option>${escapeHtml(v)}</option>`).join("");
+
+      healthFilter.innerHTML = `<option value="">All health statuses</option>` +
+        healthValues.map(v => `<option>${escapeHtml(v)}</option>`).join("");
+    }
+
+    function renderList() {
+      const q = searchBox.value.trim().toLowerCase();
+      const species = speciesFilter.value;
+      const health = healthFilter.value;
+
+      filteredTrees = allTrees.filter(tree => {
+        const hay = [
+          tree.tree_id, tree.common_name, tree.scientific_name,
+          tree.location_name, tree.health, tree.notes
+        ].join(" ").toLowerCase();
+
+        const matchesSearch = !q || hay.includes(q);
+        const matchesSpecies = !species || tree.common_name === species;
+        const matchesHealth = !health || tree.health === health;
+        return matchesSearch && matchesSpecies && matchesHealth;
+      });
+
+      countLabel.textContent = filteredTrees.length;
+
+      treeList.innerHTML = filteredTrees.map(tree => `
+        <div class="tree-item ${tree.tree_id === activeTreeId ? "active" : ""}" data-id="${escapeHtml(tree.tree_id)}">
+          <p class="tree-title">${escapeHtml(tree.common_name || "Unnamed Tree")}</p>
+          <p class="tree-meta">${escapeHtml(tree.scientific_name || "No scientific name")} • ${escapeHtml(tree.tree_id || "No ID")} • ${escapeHtml(tree.location_name || "No location")}</p>
+        </div>
+      `).join("");
+
+      document.querySelectorAll(".tree-item").forEach(el => {
+        el.addEventListener("click", () => {
+          activeTreeId = el.dataset.id;
+          renderList();
+          renderDetail(activeTreeId);
+          fillEditForm();
+        });
+      });
+
+      if (!filteredTrees.some(t => t.tree_id === activeTreeId) && filteredTrees.length) {
+        activeTreeId = filteredTrees[0].tree_id;
+      }
+
+      if (activeTreeId) {
+        renderDetail(activeTreeId);
+        if (unlocked) fillEditForm();
+      } else {
+        detail.innerHTML = `<div class="muted-box">No trees match the current filters.</div>`;
+      }
+    }
+
+    function renderDetail(treeId) {
+      const tree = allTrees.find(t => t.tree_id === treeId) || filteredTrees[0];
+      if (!tree) {
+        detail.innerHTML = `<div class="muted-box">No tree selected.</div>`;
+        return;
+      }
+
+      const mapLink = makeMapLink(tree);
+
+      detail.innerHTML = `
+        <div class="tag">Tree ID: ${escapeHtml(tree.tree_id || "N/A")}</div>
+        <h3>${escapeHtml(tree.common_name || "Unnamed Tree")}</h3>
+        <p class="latin">${escapeHtml(tree.scientific_name || "Scientific name coming later")}</p>
+
+        <div class="stats">
+          <div class="stat"><div class="label">Planting Year</div><div class="value">${escapeHtml(tree.planting_year || "—")}</div></div>
+          <div class="stat"><div class="label">DBH</div><div class="value">${escapeHtml(tree.dbh || "—")}</div></div>
+          <div class="stat"><div class="label">Height</div><div class="value">${escapeHtml(tree.height || "—")}</div></div>
+          <div class="stat"><div class="label">Health</div><div class="value">${escapeHtml(tree.health || "—")}</div></div>
+          <div class="stat"><div class="label">Location</div><div class="value">${escapeHtml(tree.location_name || "—")}</div></div>
+          <div class="stat"><div class="label">Coordinates</div><div class="value">${escapeHtml(tree.lat && tree.lon ? tree.lat + ", " + tree.lon : "—")}</div></div>
+        </div>
+
+        <div class="desc">${escapeHtml(tree.notes || "Notes can be added later from your Excel export.")}</div>
+
+        <div class="actions">
+          ${mapLink ? `<a class="button primary" href="${escapeHtml(mapLink)}" target="_blank" rel="noopener noreferrer">Open map</a>` : ``}
+          <a class="button secondary" href="#" onclick="copyTreeLink('${escapeHtml(tree.tree_id)}'); return false;">Copy public link</a>
+        </div>
+
+        <div class="muted-box">
+          Suggested public NFC URL:
+          <br>
+          <code>https://yourdomain.org/tree/${escapeHtml(tree.tree_id || "T001")}.html</code>
+          <br><br>
+          Suggested CSV columns:
+          <code>tree_id, common_name, scientific_name, planting_year, dbh, height, health, location_name, notes, lat, lon, map_link</code>
+        </div>
+      `;
+    }
+
+    function fillEditForm() {
+      const tree = allTrees.find(t => t.tree_id === activeTreeId);
+      if (!tree || !unlocked) return;
+      editCommonName.value = tree.common_name || "";
+      editScientificName.value = tree.scientific_name || "";
+      editHealth.value = tree.health || "";
+      editNotes.value = tree.notes || "";
+    }
+
+    function unlockAdmin() {
+      const guess = passwordInput.value;
+      if (guess !== DEMO_PASSWORD) {
+        alert("Incorrect password for this demo.");
+        return;
+      }
+      unlocked = true;
+      lockStatus.textContent = "Unlocked";
+      lockStatus.classList.remove("locked");
+
+      importLockedMsg.classList.add("hidden");
+      editLockedMsg.classList.add("hidden");
+      exportLockedMsg.classList.add("hidden");
+
+      importTools.classList.remove("hidden");
+      editTools.classList.remove("hidden");
+      exportTools.classList.remove("hidden");
+
+      fillEditForm();
+    }
+
+    function saveSelectedTree() {
+      const idx = allTrees.findIndex(t => t.tree_id === activeTreeId);
+      if (idx === -1) return;
+
+      allTrees[idx].common_name = editCommonName.value.trim();
+      allTrees[idx].scientific_name = editScientificName.value.trim();
+      allTrees[idx].health = editHealth.value.trim();
+      allTrees[idx].notes = editNotes.value.trim();
+
+      renderList();
+      renderDetail(activeTreeId);
+      alert("Selected tree updated in this browser session.");
+    }
+
+    function toCsv(rows) {
+      if (!rows.length) return "";
+      const headers = ["tree_id","common_name","scientific_name","planting_year","dbh","height","health","location_name","notes","lat","lon","map_link"];
+      const escapeCell = value => {
+        const s = String(value ?? "");
+        if (s.includes('"') || s.includes(",") || s.includes("\n")) {
+          return '"' + s.replaceAll('"', '""') + '"';
+        }
+        return s;
+      };
+      const lines = [headers.join(",")];
+      rows.forEach(row => {
+        lines.push(headers.map(h => escapeCell(row[h] || "")).join(","));
+      });
+      return lines.join("\n");
+    }
+
+    function downloadCsv() {
+      const csv = toCsv(allTrees);
+      const blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "trees_updated.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function loadDefaultCsvIfAvailable() {
+      try {
+        const res = await fetch("trees.csv", { cache: "no-store" });
+        if (!res.ok) throw new Error("trees.csv not found");
+        const text = await res.text();
+        const parsed = csvToObjects(text).map(remapTree).filter(t => t.tree_id);
+        if (!parsed.length) throw new Error("CSV contained no valid rows");
+        allTrees = parsed;
+        notice.textContent = "CSV loaded successfully from trees.csv.";
+      } catch (err) {
+        allTrees = sampleTrees;
+      }
+
+      fillFilters(allTrees);
+      activeTreeId = allTrees[0]?.tree_id || null;
+      renderList();
+      renderDetail(activeTreeId);
+    }
+
+    function handleLocalCsvUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const text = e.target.result;
+        const parsed = csvToObjects(text).map(remapTree).filter(t => t.tree_id);
+        if (!parsed.length) {
+          alert("That CSV did not contain any valid tree rows.");
+          return;
+        }
+        allTrees = parsed;
+        activeTreeId = allTrees[0]?.tree_id || null;
+        fillFilters(allTrees);
+        renderList();
+        renderDetail(activeTreeId);
+        fillEditForm();
+        notice.textContent = `Loaded local CSV: ${file.name}`;
+      };
+      reader.readAsText(file);
+    }
+
+    function copyTreeLink(treeId) {
+      const url = `https://yourdomain.org/tree/${encodeURIComponent(treeId)}.html`;
+      navigator.clipboard.writeText(url).then(() => {
+        alert("Copied suggested public URL:\n" + url);
+      }).catch(() => {
+        alert("Suggested public URL:\n" + url);
+      });
+    }
+
+    searchBox.addEventListener("input", renderList);
+    speciesFilter.addEventListener("change", renderList);
+    healthFilter.addEventListener("change", renderList);
+    unlockBtn.addEventListener("click", unlockAdmin);
+    saveTreeBtn.addEventListener("click", saveSelectedTree);
+    downloadCsvBtn.addEventListener("click", downloadCsv);
+    csvUpload.addEventListener("change", handleLocalCsvUpload);
+
+    loadDefaultCsvIfAvailable();
+  </script>
+</body>
+</html>
