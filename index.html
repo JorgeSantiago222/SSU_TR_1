@@ -3,591 +3,799 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Salem State University Tree Database</title>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <title>Campus Tree Management | Salem State Draft</title>
   <style>
     :root{
-      --navy:#0f2847;
-      --navy-2:#17375f;
-      --orange:#f47c20;
-      --cream:#f7f5f1;
-      --ink:#1f2937;
-      --muted:#6b7280;
-      --line:#d7dde6;
+      --bg:#f5f7fb;
       --card:#ffffff;
-      --shadow:0 10px 24px rgba(15,40,71,.08);
+      --line:#d8dfeb;
+      --text:#12233d;
+      --muted:#5e6f8c;
+      --navy:#002855;
+      --navy-2:#0a3970;
+      --orange:#f58220;
+      --orange-soft:#fff2e6;
+      --shadow:0 14px 34px rgba(0,33,71,.10);
       --radius:18px;
+      --success:#1d6f42;
+      --warn:#8a4b00;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family:Arial, Helvetica, sans-serif;
-      color:var(--ink);
-      background:linear-gradient(180deg,#f4f7fb 0%, #eef3f9 100%);
+      font-family: Arial, Helvetica, sans-serif;
+      color:var(--text);
+      background:linear-gradient(180deg,#eef3fb 0%, var(--bg) 100%);
     }
-    .shell{
-      max-width:1320px;
+    .wrap{
+      max-width:1200px;
       margin:0 auto;
-      padding:24px;
+      padding:24px 16px 56px;
     }
     .hero{
-      background:linear-gradient(135deg,var(--navy) 0%, var(--navy-2) 100%);
+      background:linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
       color:#fff;
-      border-radius:28px;
-      padding:28px;
+      border-radius:30px;
+      padding:30px;
       box-shadow:var(--shadow);
-      margin-bottom:20px;
+      margin-bottom:22px;
+    }
+    .hero-badge{
+      display:inline-block;
+      background:rgba(245,130,32,.16);
+      color:#ffd3a8;
+      border:1px solid rgba(255,255,255,.12);
+      padding:7px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.04em;
+      margin-bottom:14px;
+      text-transform:uppercase;
     }
     .hero h1{
-      margin:0 0 10px 0;
-      font-size:clamp(1.9rem, 3vw, 2.7rem);
-      line-height:1.1;
+      margin:0 0 10px;
+      font-size:clamp(30px, 5vw, 46px);
+      line-height:1.05;
     }
     .hero p{
       margin:0;
-      color:rgba(255,255,255,.88);
-      max-width:800px;
+      max-width:820px;
+      color:#dbe7f7;
+      font-size:17px;
     }
-    .hero-stats{
-      display:flex;
-      flex-wrap:wrap;
+    .hero-note{
+      margin-top:16px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.08);
+      color:#f3f7fd;
+      font-size:14px;
+    }
+    .notice{
+      background:var(--orange-soft);
+      color:var(--warn);
+      border:1px solid #f4c596;
+      border-radius:14px;
+      padding:14px 16px;
+      margin:0 0 20px;
+    }
+    .toolbar{
+      display:grid;
+      grid-template-columns:1.3fr 1fr 1fr;
       gap:12px;
-      margin-top:18px;
+      margin-bottom:20px;
     }
-    .stat{
-      background:rgba(255,255,255,.11);
-      border:1px solid rgba(255,255,255,.18);
-      border-radius:999px;
-      padding:10px 14px;
-      font-size:.95rem;
+    .input,.select,.button,.file-input{
+      width:100%;
+      padding:14px 16px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:var(--card);
+      color:var(--text);
+      font-size:15px;
+    }
+    .button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      font-weight:700;
+      cursor:pointer;
+      text-decoration:none;
+    }
+    .button.primary{
+      background:var(--navy);
+      color:#fff;
+      border-color:var(--navy);
+    }
+    .button.secondary{
+      background:#fff;
+      color:var(--navy);
+    }
+    .button.orange{
+      background:var(--orange);
+      color:#fff;
+      border-color:var(--orange);
     }
     .layout{
       display:grid;
-      grid-template-columns:380px 1fr;
-      gap:20px;
-      align-items:start;
+      grid-template-columns:1.05fr .95fr;
+      gap:22px;
     }
-    .card{
+    .panel{
       background:var(--card);
-      border:1px solid rgba(15,40,71,.08);
-      border-radius:var(--radius);
+      border:1px solid var(--line);
+      border-radius:24px;
       box-shadow:var(--shadow);
+      overflow:hidden;
     }
     .panel-head{
-      padding:18px 18px 12px;
+      padding:18px 20px;
       border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
     }
     .panel-head h2{
       margin:0;
-      font-size:1.1rem;
+      font-size:22px;
+      color:var(--navy);
     }
-    .panel-body{
-      padding:18px;
-    }
-    .controls{
-      display:grid;
-      gap:12px;
-      margin-top:14px;
-    }
-    .control-label{
-      font-size:.86rem;
+    .subtle{
       color:var(--muted);
-      margin-bottom:6px;
-      display:block;
+      font-size:14px;
     }
-    input[type="search"], select{
-      width:100%;
-      padding:12px 14px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      font-size:1rem;
-      background:#fff;
-    }
-    .list{
-      max-height:72vh;
+    .tree-list{
+      max-height:64vh;
       overflow:auto;
-      padding:8px 10px 16px;
     }
     .tree-item{
-      width:100%;
-      text-align:left;
-      border:1px solid var(--line);
-      background:#fff;
-      border-radius:16px;
-      padding:14px;
-      margin:10px 0;
+      padding:16px 18px;
+      border-bottom:1px solid var(--line);
       cursor:pointer;
-      transition:transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+      transition:background .15s ease, border-left-color .15s ease;
+      border-left:4px solid transparent;
     }
-    .tree-item:hover{
-      transform:translateY(-1px);
-      border-color:#b6c2d1;
-      box-shadow:0 8px 18px rgba(15,40,71,.08);
-    }
+    .tree-item:hover,
     .tree-item.active{
-      border-color:var(--orange);
-      box-shadow:0 0 0 3px rgba(244,124,32,.16);
+      background:#f6f9fe;
+      border-left-color:var(--orange);
     }
-    .tree-name{
+    .tree-title{
+      margin:0 0 4px;
       font-weight:700;
-      font-size:1rem;
-      margin-bottom:6px;
     }
     .tree-meta{
-      color:var(--muted);
-      font-size:.93rem;
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px 12px;
-    }
-    .detail-empty{
-      padding:48px 18px;
-      color:var(--muted);
-    }
-    .title-row{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:16px;
-      margin-bottom:16px;
-    }
-    .title-row h2{
       margin:0;
-      font-size:clamp(1.7rem,2.5vw,2.3rem);
-      line-height:1.08;
+      color:var(--muted);
+      font-size:14px;
     }
-    .subchips{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-top:12px;
+    .detail{
+      padding:22px;
     }
-    .chip{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 12px;
-      background:#f6f8fb;
-      border:1px solid var(--line);
+    .tag{
+      display:inline-block;
+      background:#e8f0fb;
+      color:var(--navy);
+      padding:6px 10px;
       border-radius:999px;
-      font-size:.93rem;
-      color:#374151;
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      margin-bottom:12px;
+    }
+    .detail h3{
+      margin:0 0 6px;
+      font-size:34px;
+      color:var(--navy);
+    }
+    .latin{
+      margin:0 0 16px;
+      font-style:italic;
+      color:var(--muted);
+      font-size:19px;
+    }
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin:18px 0;
+    }
+    .stat{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      background:#fbfcff;
+    }
+    .label{
+      font-size:12px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      margin-bottom:6px;
+    }
+    .value{
+      font-size:18px;
+      font-weight:700;
+    }
+    .desc{
+      line-height:1.65;
+      white-space:pre-wrap;
     }
     .actions{
       display:flex;
       flex-wrap:wrap;
       gap:10px;
-      margin:2px 0 18px;
+      margin-top:20px;
     }
-    .btn, .btn:visited{
-      appearance:none;
-      border:none;
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      padding:12px 16px;
-      border-radius:12px;
-      font-weight:700;
-      cursor:pointer;
-      transition:transform .12s ease, opacity .12s ease, box-shadow .12s ease;
-    }
-    .btn:hover{ transform:translateY(-1px); }
-    .btn-primary{ background:var(--navy); color:#fff; }
-    .btn-secondary{ background:var(--orange); color:#fff; }
-    .btn-soft{ background:#eef3f9; color:var(--navy); border:1px solid var(--line); }
-    .nfc-box{
-      background:#fff8f2;
-      border:1px solid #ffd2ae;
-      border-radius:16px;
-      padding:14px 16px;
-      margin-bottom:18px;
-    }
-    .nfc-label{
-      font-weight:700;
-      color:#8a4b10;
-      margin-bottom:8px;
-    }
-    .nfc-row{
-      display:flex;
-      gap:10px;
-      align-items:flex-start;
-      flex-wrap:wrap;
-    }
-    .nfc-url{
-      word-break:break-all;
-      font-family:Consolas, Monaco, monospace;
-      background:#fff;
-      border:1px solid #ffd2ae;
-      padding:10px 12px;
-      border-radius:12px;
-      flex:1 1 300px;
-      min-width:0;
-    }
-    .fields{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
-      gap:12px;
-    }
-    .field{
-      border:1px solid var(--line);
-      border-radius:16px;
+    .muted-box{
+      margin-top:16px;
       padding:14px;
-      background:#fff;
-      min-height:88px;
-    }
-    .field-label{
-      font-size:.82rem;
-      letter-spacing:.02em;
+      border-radius:14px;
+      background:#f8fafd;
+      border:1px dashed var(--line);
       color:var(--muted);
-      margin-bottom:8px;
-      word-break:break-word;
+      font-size:14px;
+      line-height:1.55;
     }
-    .field-value{
-      font-size:1rem;
-      font-weight:700;
-      line-height:1.35;
-      word-break:break-word;
+    .admin-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+      padding:20px;
     }
-    .footer-note{
+    .admin-card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      background:#fcfdff;
+    }
+    .admin-card h3{
+      margin:0 0 10px;
+      font-size:18px;
+      color:var(--navy);
+    }
+    .admin-card p{
+      margin:0 0 12px;
       color:var(--muted);
-      margin-top:14px;
-      font-size:.92rem;
+      font-size:14px;
+      line-height:1.55;
     }
-    .hidden{display:none !important;}
+    .stack{display:grid; gap:10px;}
     .status{
-      color:var(--muted);
-      padding:14px 18px;
-      font-size:.95rem;
+      display:inline-block;
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+      background:#edf7f1;
+      color:var(--success);
     }
-    @media (max-width: 980px){
-      .layout{ grid-template-columns:1fr; }
-      .list{ max-height:none; }
-      .title-row{ flex-direction:column; }
+    .status.locked{
+      background:#fff2e6;
+      color:var(--warn);
+    }
+    .helper{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+    }
+    .small{
+      font-size:13px;
+      color:var(--muted);
+    }
+    code{
+      background:#eef3fb;
+      color:var(--navy);
+      padding:2px 6px;
+      border-radius:6px;
+    }
+    .hidden{display:none!important}
+    .footer-note{
+      margin-top:18px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+    }
+    @media (max-width: 960px){
+      .layout{grid-template-columns:1fr}
+      .toolbar{grid-template-columns:1fr}
+      .admin-grid{grid-template-columns:1fr}
+      .tree-list{max-height:none}
     }
   </style>
 </head>
 <body>
-  <div class="shell">
+  <div class="wrap">
     <section class="hero">
-      <h1>Salem State University Tree Database</h1>
-      <p>Browse the campus tree inventory, open an individual viewer page for each tree, and copy the NFC destination link from the main database page.</p>
-      <div class="hero-stats" id="heroStats"></div>
+      <div class="hero-badge">Salem State–style draft</div>
+      <h1>Campus Tree Management Site</h1>
+      <p>
+        This version uses a navy-and-orange visual theme and turns the draft into a staff-facing management site.
+        It still works as a static HTML prototype and can later connect to your real tree CSV.
+      </p>
+      <div class="hero-note">
+        Important: the password section below is a <strong>front-end prototype only</strong>. In a plain HTML site, this is not real security.
+        For real password protection, the host must provide authentication.
+      </div>
     </section>
 
-    <section class="layout">
-      <aside class="card">
+    <div id="notice" class="notice">
+      No CSV loaded yet. The site is showing built-in sample records so you can test the design and workflow.
+    </div>
+
+    <div class="toolbar">
+      <input id="searchBox" class="input" type="text" placeholder="Search by ID, common name, scientific name, or location">
+      <select id="speciesFilter" class="select">
+        <option value="">All species</option>
+      </select>
+      <select id="healthFilter" class="select">
+        <option value="">All health statuses</option>
+      </select>
+    </div>
+
+    <div class="layout">
+      <section class="panel">
         <div class="panel-head">
           <h2>Tree Inventory</h2>
-          <div class="controls">
-            <div>
-              <label class="control-label" for="searchInput">Search by tree name, ID, genus, condition, or campus</label>
-              <input type="search" id="searchInput" placeholder="Search trees..." />
-            </div>
-            <div>
-              <label class="control-label" for="campusFilter">Filter by campus</label>
-              <select id="campusFilter">
-                <option value="all">All campuses</option>
-              </select>
+          <div class="subtle"><span id="countLabel">0</span> trees shown</div>
+        </div>
+        <div id="treeList" class="tree-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Tree Details</h2>
+          <div class="subtle">Staff preview</div>
+        </div>
+        <div id="detail" class="detail"></div>
+      </section>
+    </div>
+
+    <div style="height:22px"></div>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Management Access</h2>
+        <div id="lockStatus" class="status locked">Locked</div>
+      </div>
+
+      <div class="admin-grid">
+        <div class="admin-card">
+          <h3>Password Gate</h3>
+          <p>Use this to simulate a staff-only section in the prototype.</p>
+          <div class="stack">
+            <input id="passwordInput" class="input" type="password" placeholder="Enter management password">
+            <button id="unlockBtn" class="button primary" type="button">Unlock management tools</button>
+            <div class="helper">
+              Demo password for this prototype: <code>salemtrees2026</code>
             </div>
           </div>
         </div>
-        <div class="status" id="listStatus">Loading workbook...</div>
-        <div class="list" id="treeList"></div>
-      </aside>
 
-      <main class="card">
-        <div class="panel-body" id="detailPanel">
-          <div class="detail-empty">Select a tree to view its details.</div>
+        <div class="admin-card">
+          <h3>Data Import</h3>
+          <p>Once unlocked, staff can load a local CSV file to preview updates in the browser.</p>
+          <div id="importLockedMsg" class="helper">
+            Upload is locked until the password section is opened.
+          </div>
+          <div id="importTools" class="stack hidden">
+            <input id="csvUpload" class="file-input" type="file" accept=".csv">
+            <div class="small">Load a CSV from your computer to preview updates in this browser session.</div>
+          </div>
         </div>
-      </main>
+
+        <div class="admin-card">
+          <h3>Edit Selected Tree</h3>
+          <p>These fields let you test editing a tree record after unlocking the page.</p>
+          <div id="editLockedMsg" class="helper">
+            Editing is locked until the password section is opened.
+          </div>
+          <div id="editTools" class="stack hidden">
+            <input id="editCommonName" class="input" type="text" placeholder="Common name">
+            <input id="editScientificName" class="input" type="text" placeholder="Scientific name">
+            <input id="editHealth" class="input" type="text" placeholder="Health">
+            <textarea id="editNotes" class="input" rows="5" placeholder="Notes" style="resize:vertical"></textarea>
+            <button id="saveTreeBtn" class="button orange" type="button">Apply changes to selected tree</button>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <h3>Export</h3>
+          <p>After making edits, export the updated records as a fresh CSV.</p>
+          <div id="exportLockedMsg" class="helper">
+            Export is locked until the password section is opened.
+          </div>
+          <div id="exportTools" class="stack hidden">
+            <button id="downloadCsvBtn" class="button secondary" type="button">Download updated CSV</button>
+            <div class="small">This updates only the downloaded file. A static HTML page cannot save directly back to a live website.</div>
+          </div>
+        </div>
+      </div>
     </section>
+
+    <div class="footer-note">
+      Salem State’s athletics site and university materials refer to the school community as the <strong>Blue and Orange</strong>,
+      which is the basis for this theme.
+    </div>
   </div>
 
   <script>
-    const WORKBOOK_FILE = "./officialtreedatabase_NFC.xlsx";
-    const SHEET_NAME = "officialtreedatabase_NFC";
-    const TREE_PAGE_FILE = "./tree_single_sheet_excel.html";
-    const CAMPUS_MAP_URLS = {
-      "north campus": "",
-      "south campus": ""
-    };
+    const DEMO_PASSWORD = "salemtrees2026";
+
+    const sampleTrees = [
+      {
+        tree_id: "T001",
+        common_name: "Northern Red Oak",
+        scientific_name: "Quercus rubra",
+        planting_year: "1998",
+        dbh: "48 cm",
+        height: "18 m",
+        health: "Good",
+        location_name: "Library Walk",
+        notes: "Large shade tree with a broad canopy. Healthy structure and strong seasonal color.",
+        lat: "42.5033",
+        lon: "-70.8890",
+        map_link: ""
+      },
+      {
+        tree_id: "T002",
+        common_name: "Sugar Maple",
+        scientific_name: "Acer saccharum",
+        planting_year: "2005",
+        dbh: "30 cm",
+        height: "12 m",
+        health: "Fair",
+        location_name: "Science Quad",
+        notes: "Good form overall. Monitor bark damage on the lower trunk.",
+        lat: "42.5037",
+        lon: "-70.8885",
+        map_link: ""
+      },
+      {
+        tree_id: "T003",
+        common_name: "Eastern White Pine",
+        scientific_name: "Pinus strobus",
+        planting_year: "2012",
+        dbh: "22 cm",
+        height: "10 m",
+        health: "Excellent",
+        location_name: "North Residence Lawn",
+        notes: "Young conifer in open lawn setting. Fast growth and healthy crown.",
+        lat: "42.5042",
+        lon: "-70.8880",
+        map_link: ""
+      }
+    ];
 
     let allTrees = [];
     let filteredTrees = [];
-    let selectedKey = null;
+    let activeTreeId = null;
+    let unlocked = false;
 
-    function normalizeText(value) {
-      return String(value ?? "").trim();
+    function normalizeKey(s) {
+      return String(s || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^\w]+/g, "_")
+        .replace(/^_+|_+$/g, "");
     }
 
-    function normalizeCampus(value) {
-      return normalizeText(value).toLowerCase();
+    function escapeHtml(str) {
+      return String(str || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
     }
 
-    function escapeHtml(value) {
-      return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
+    function csvToObjects(text) {
+      const rows = [];
+      let row = [];
+      let field = "";
+      let inQuotes = false;
 
-    function formatValue(value) {
-      if (value === null || value === undefined || value === "") return "";
-      if (typeof value === "number") {
-        return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.00$/, "");
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            field += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === "," && !inQuotes) {
+          row.push(field);
+          field = "";
+        } else if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") i++;
+          row.push(field);
+          if (row.some(cell => String(cell).trim() !== "")) rows.push(row);
+          row = [];
+          field = "";
+        } else {
+          field += char;
+        }
       }
-      return String(value);
-    }
 
-    function getTreeDisplayName(tree) {
-      return normalizeText(tree.Tree_Spe_1) || normalizeText(tree.Tree_ID) || "Unnamed tree";
-    }
-
-    function getCampus(tree) {
-      return normalizeText(tree["Campus/Location"]) || "Unknown campus";
-    }
-
-    function getTreeSubtitle(tree) {
-      const bits = [];
-      if (normalizeText(tree.Tree_ID)) bits.push(tree.Tree_ID);
-      if (getCampus(tree)) bits.push(getCampus(tree));
-      return bits.join(" · ");
-    }
-
-    function getMapUrl(tree) {
-      const directFields = ["map_url", "map_link", "Map_URL", "Map_Link", "arcgis_url", "ArcGIS_URL"];
-      for (const field of directFields) {
-        if (normalizeText(tree[field])) return normalizeText(tree[field]);
+      if (field.length || row.length) {
+        row.push(field);
+        if (row.some(cell => String(cell).trim() !== "")) rows.push(row);
       }
-      const campusKey = normalizeCampus(tree["Campus/Location"]);
-      if (CAMPUS_MAP_URLS[campusKey]) return CAMPUS_MAP_URLS[campusKey];
+
+      if (!rows.length) return [];
+      const headers = rows[0].map(h => normalizeKey(h));
+
+      return rows.slice(1).map(cols => {
+        const obj = {};
+        headers.forEach((h, idx) => obj[h] = (cols[idx] || "").trim());
+        return obj;
+      });
+    }
+
+    function remapTree(obj) {
+      return {
+        tree_id: obj.tree_id || obj.id || "",
+        common_name: obj.common_name || obj.name || "",
+        scientific_name: obj.scientific_name || obj.species || "",
+        planting_year: obj.planting_year || obj.year_planted || "",
+        dbh: obj.dbh || obj.diameter || "",
+        height: obj.height || "",
+        health: obj.health || obj.condition || "",
+        location_name: obj.location_name || obj.location || "",
+        notes: obj.notes || obj.description || "",
+        lat: obj.lat || obj.latitude || "",
+        lon: obj.lon || obj.longitude || "",
+        map_link: obj.map_link || ""
+      };
+    }
+
+    function makeMapLink(tree) {
+      if (tree.map_link) return tree.map_link;
+      if (tree.lat && tree.lon) return `https://maps.google.com/?q=${encodeURIComponent(tree.lat)},${encodeURIComponent(tree.lon)}`;
       return "";
     }
 
-    function openMapForTree(tree) {
-      const url = getMapUrl(tree);
-      if (url) {
-        window.open(url, "_blank", "noopener");
-      } else {
-        alert("Map link placeholder only for now. Add your ArcGIS URL in the page file when you're ready.");
-      }
+    function uniqSorted(values) {
+      return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
     }
 
-    function getViewerUrl(tree) {
-      return `${TREE_PAGE_FILE}?key=${encodeURIComponent(tree.__record_key)}`;
-    }
+    function fillFilters(trees) {
+      const speciesValues = uniqSorted(trees.map(t => t.common_name));
+      const healthValues = uniqSorted(trees.map(t => t.health));
 
-    function getNfcUrl(tree) {
-      const absolute = new URL(getViewerUrl(tree), window.location.href);
-      return absolute.toString();
-    }
+      speciesFilter.innerHTML = `<option value="">All species</option>` +
+        speciesValues.map(v => `<option>${escapeHtml(v)}</option>`).join("");
 
-    function dedupeExactRows(rows) {
-      const seen = new Set();
-      return rows.filter(row => {
-        const signature = JSON.stringify(row);
-        if (seen.has(signature)) return false;
-        seen.add(signature);
-        return true;
-      });
-    }
-
-    function addRecordKeys(rows) {
-      const idCounts = {};
-      rows.forEach(row => {
-        const id = normalizeText(row.Tree_ID);
-        if (!id) return;
-        idCounts[id] = (idCounts[id] || 0) + 1;
-      });
-      return rows.map((row, index) => {
-        const id = normalizeText(row.Tree_ID);
-        const sourceRow = row.__source_row || (index + 2);
-        const recordKey = id && idCounts[id] === 1 ? id : `${id || "ROW"}-${sourceRow}`;
-        return { ...row, __record_key: recordKey };
-      });
-    }
-
-    async function loadWorkbookRows() {
-      const response = await fetch(WORKBOOK_FILE, { cache: "no-store" });
-      if (!response.ok) throw new Error(`Could not load ${WORKBOOK_FILE}`);
-      const buffer = await response.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: "array" });
-      const sheet = workbook.Sheets[SHEET_NAME] || workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-      rows.forEach((row, idx) => row.__source_row = idx + 2);
-      return addRecordKeys(dedupeExactRows(rows));
-    }
-
-    function buildStats() {
-      const hero = document.getElementById("heroStats");
-      const campusCounts = {};
-      allTrees.forEach(tree => {
-        const campus = getCampus(tree);
-        campusCounts[campus] = (campusCounts[campus] || 0) + 1;
-      });
-      const stats = [
-        `${allTrees.length} trees`,
-        ...Object.entries(campusCounts)
-          .sort((a, b) => a[0].localeCompare(b[0]))
-          .map(([campus, count]) => `${count} on ${campus}`)
-      ];
-      hero.innerHTML = stats.map(text => `<div class="stat">${escapeHtml(text)}</div>`).join("");
-    }
-
-    function buildCampusFilter() {
-      const select = document.getElementById("campusFilter");
-      const current = select.value;
-      const campuses = [...new Set(allTrees.map(tree => getCampus(tree)).filter(Boolean))].sort();
-      select.innerHTML = `<option value="all">All campuses</option>` +
-        campuses.map(campus => `<option value="${escapeHtml(campus)}">${escapeHtml(campus)}</option>`).join("");
-      if ([...select.options].some(opt => opt.value === current)) select.value = current;
-    }
-
-    function applyFilters() {
-      const query = normalizeText(document.getElementById("searchInput").value).toLowerCase();
-      const campus = document.getElementById("campusFilter").value;
-      filteredTrees = allTrees.filter(tree => {
-        const haystack = [
-          tree.Tree_ID,
-          tree.Tree_Spe_1,
-          tree.genus,
-          tree.Condition,
-          tree.Vigor,
-          tree["Campus/Location"]
-        ].map(v => normalizeText(v).toLowerCase()).join(" ");
-        const matchesQuery = !query || haystack.includes(query);
-        const matchesCampus = campus === "all" || getCampus(tree) === campus;
-        return matchesQuery && matchesCampus;
-      }).sort((a, b) => {
-        const nameCompare = getTreeDisplayName(a).localeCompare(getTreeDisplayName(b));
-        if (nameCompare !== 0) return nameCompare;
-        return normalizeText(a.Tree_ID).localeCompare(normalizeText(b.Tree_ID));
-      });
-
-      if (!filteredTrees.some(tree => tree.__record_key === selectedKey)) {
-        selectedKey = filteredTrees[0]?.__record_key || null;
-      }
-
-      renderList();
-      renderDetail();
+      healthFilter.innerHTML = `<option value="">All health statuses</option>` +
+        healthValues.map(v => `<option>${escapeHtml(v)}</option>`).join("");
     }
 
     function renderList() {
-      const list = document.getElementById("treeList");
-      const status = document.getElementById("listStatus");
-      status.textContent = filteredTrees.length ? `${filteredTrees.length} trees shown` : `No trees match the current filters.`;
-      if (!filteredTrees.length) {
-        list.innerHTML = "";
-        return;
-      }
-      list.innerHTML = filteredTrees.map(tree => {
-        const active = tree.__record_key === selectedKey ? " active" : "";
-        return `
-          <button class="tree-item${active}" data-key="${escapeHtml(tree.__record_key)}">
-            <div class="tree-name">${escapeHtml(getTreeDisplayName(tree))}</div>
-            <div class="tree-meta">
-              <span>${escapeHtml(normalizeText(tree.Tree_ID) || "No Tree_ID")}</span>
-              <span>${escapeHtml(getCampus(tree))}</span>
-              ${normalizeText(tree.genus) ? `<span>${escapeHtml(tree.genus)}</span>` : ``}
-            </div>
-          </button>
-        `;
-      }).join("");
+      const q = searchBox.value.trim().toLowerCase();
+      const species = speciesFilter.value;
+      const health = healthFilter.value;
 
-      list.querySelectorAll(".tree-item").forEach(button => {
-        button.addEventListener("click", () => {
-          selectedKey = button.dataset.key;
-          renderList();
-          renderDetail();
-        });
+      filteredTrees = allTrees.filter(tree => {
+        const hay = [
+          tree.tree_id, tree.common_name, tree.scientific_name,
+          tree.location_name, tree.health, tree.notes
+        ].join(" ").toLowerCase();
+
+        const matchesSearch = !q || hay.includes(q);
+        const matchesSpecies = !species || tree.common_name === species;
+        const matchesHealth = !health || tree.health === health;
+        return matchesSearch && matchesSpecies && matchesHealth;
       });
-    }
 
-    function renderFields(tree) {
-      const hiddenKeys = new Set(["__record_key", "__source_row"]);
-      const entries = Object.entries(tree)
-        .filter(([key, value]) => !hiddenKeys.has(key) && normalizeText(value) !== "");
-      return entries.map(([key, value]) => `
-        <div class="field">
-          <div class="field-label">${escapeHtml(key)}</div>
-          <div class="field-value">${escapeHtml(formatValue(value))}</div>
+      countLabel.textContent = filteredTrees.length;
+
+      treeList.innerHTML = filteredTrees.map(tree => `
+        <div class="tree-item ${tree.tree_id === activeTreeId ? "active" : ""}" data-id="${escapeHtml(tree.tree_id)}">
+          <p class="tree-title">${escapeHtml(tree.common_name || "Unnamed Tree")}</p>
+          <p class="tree-meta">${escapeHtml(tree.scientific_name || "No scientific name")} • ${escapeHtml(tree.tree_id || "No ID")} • ${escapeHtml(tree.location_name || "No location")}</p>
         </div>
       `).join("");
+
+      document.querySelectorAll(".tree-item").forEach(el => {
+        el.addEventListener("click", () => {
+          activeTreeId = el.dataset.id;
+          renderList();
+          renderDetail(activeTreeId);
+          fillEditForm();
+        });
+      });
+
+      if (!filteredTrees.some(t => t.tree_id === activeTreeId) && filteredTrees.length) {
+        activeTreeId = filteredTrees[0].tree_id;
+      }
+
+      if (activeTreeId) {
+        renderDetail(activeTreeId);
+        if (unlocked) fillEditForm();
+      } else {
+        detail.innerHTML = `<div class="muted-box">No trees match the current filters.</div>`;
+      }
     }
 
-    function copyNfcUrl(tree) {
-      const url = getNfcUrl(tree);
+    function renderDetail(treeId) {
+      const tree = allTrees.find(t => t.tree_id === treeId) || filteredTrees[0];
+      if (!tree) {
+        detail.innerHTML = `<div class="muted-box">No tree selected.</div>`;
+        return;
+      }
+
+      const mapLink = makeMapLink(tree);
+
+      detail.innerHTML = `
+        <div class="tag">Tree ID: ${escapeHtml(tree.tree_id || "N/A")}</div>
+        <h3>${escapeHtml(tree.common_name || "Unnamed Tree")}</h3>
+        <p class="latin">${escapeHtml(tree.scientific_name || "Scientific name coming later")}</p>
+
+        <div class="stats">
+          <div class="stat"><div class="label">Planting Year</div><div class="value">${escapeHtml(tree.planting_year || "—")}</div></div>
+          <div class="stat"><div class="label">DBH</div><div class="value">${escapeHtml(tree.dbh || "—")}</div></div>
+          <div class="stat"><div class="label">Height</div><div class="value">${escapeHtml(tree.height || "—")}</div></div>
+          <div class="stat"><div class="label">Health</div><div class="value">${escapeHtml(tree.health || "—")}</div></div>
+          <div class="stat"><div class="label">Location</div><div class="value">${escapeHtml(tree.location_name || "—")}</div></div>
+          <div class="stat"><div class="label">Coordinates</div><div class="value">${escapeHtml(tree.lat && tree.lon ? tree.lat + ", " + tree.lon : "—")}</div></div>
+        </div>
+
+        <div class="desc">${escapeHtml(tree.notes || "Notes can be added later from your Excel export.")}</div>
+
+        <div class="actions">
+          ${mapLink ? `<a class="button primary" href="${escapeHtml(mapLink)}" target="_blank" rel="noopener noreferrer">Open map</a>` : ``}
+          <a class="button secondary" href="#" onclick="copyTreeLink('${escapeHtml(tree.tree_id)}'); return false;">Copy public link</a>
+        </div>
+
+        <div class="muted-box">
+          Suggested public NFC URL:
+          <br>
+          <code>https://yourdomain.org/tree/${escapeHtml(tree.tree_id || "T001")}.html</code>
+          <br><br>
+          Suggested CSV columns:
+          <code>tree_id, common_name, scientific_name, planting_year, dbh, height, health, location_name, notes, lat, lon, map_link</code>
+        </div>
+      `;
+    }
+
+    function fillEditForm() {
+      const tree = allTrees.find(t => t.tree_id === activeTreeId);
+      if (!tree || !unlocked) return;
+      editCommonName.value = tree.common_name || "";
+      editScientificName.value = tree.scientific_name || "";
+      editHealth.value = tree.health || "";
+      editNotes.value = tree.notes || "";
+    }
+
+    function unlockAdmin() {
+      const guess = passwordInput.value;
+      if (guess !== DEMO_PASSWORD) {
+        alert("Incorrect password for this demo.");
+        return;
+      }
+      unlocked = true;
+      lockStatus.textContent = "Unlocked";
+      lockStatus.classList.remove("locked");
+
+      importLockedMsg.classList.add("hidden");
+      editLockedMsg.classList.add("hidden");
+      exportLockedMsg.classList.add("hidden");
+
+      importTools.classList.remove("hidden");
+      editTools.classList.remove("hidden");
+      exportTools.classList.remove("hidden");
+
+      fillEditForm();
+    }
+
+    function saveSelectedTree() {
+      const idx = allTrees.findIndex(t => t.tree_id === activeTreeId);
+      if (idx === -1) return;
+
+      allTrees[idx].common_name = editCommonName.value.trim();
+      allTrees[idx].scientific_name = editScientificName.value.trim();
+      allTrees[idx].health = editHealth.value.trim();
+      allTrees[idx].notes = editNotes.value.trim();
+
+      renderList();
+      renderDetail(activeTreeId);
+      alert("Selected tree updated in this browser session.");
+    }
+
+    function toCsv(rows) {
+      if (!rows.length) return "";
+      const headers = ["tree_id","common_name","scientific_name","planting_year","dbh","height","health","location_name","notes","lat","lon","map_link"];
+      const escapeCell = value => {
+        const s = String(value ?? "");
+        if (s.includes('"') || s.includes(",") || s.includes("\n")) {
+          return '"' + s.replaceAll('"', '""') + '"';
+        }
+        return s;
+      };
+      const lines = [headers.join(",")];
+      rows.forEach(row => {
+        lines.push(headers.map(h => escapeCell(row[h] || "")).join(","));
+      });
+      return lines.join("\n");
+    }
+
+    function downloadCsv() {
+      const csv = toCsv(allTrees);
+      const blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "trees_updated.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function loadDefaultCsvIfAvailable() {
+      try {
+        const res = await fetch("trees.csv", { cache: "no-store" });
+        if (!res.ok) throw new Error("trees.csv not found");
+        const text = await res.text();
+        const parsed = csvToObjects(text).map(remapTree).filter(t => t.tree_id);
+        if (!parsed.length) throw new Error("CSV contained no valid rows");
+        allTrees = parsed;
+        notice.textContent = "CSV loaded successfully from trees.csv.";
+      } catch (err) {
+        allTrees = sampleTrees;
+      }
+
+      fillFilters(allTrees);
+      activeTreeId = allTrees[0]?.tree_id || null;
+      renderList();
+      renderDetail(activeTreeId);
+    }
+
+    function handleLocalCsvUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const text = e.target.result;
+        const parsed = csvToObjects(text).map(remapTree).filter(t => t.tree_id);
+        if (!parsed.length) {
+          alert("That CSV did not contain any valid tree rows.");
+          return;
+        }
+        allTrees = parsed;
+        activeTreeId = allTrees[0]?.tree_id || null;
+        fillFilters(allTrees);
+        renderList();
+        renderDetail(activeTreeId);
+        fillEditForm();
+        notice.textContent = `Loaded local CSV: ${file.name}`;
+      };
+      reader.readAsText(file);
+    }
+
+    function copyTreeLink(treeId) {
+      const url = `https://yourdomain.org/tree/${encodeURIComponent(treeId)}.html`;
       navigator.clipboard.writeText(url).then(() => {
-        const btn = document.getElementById("copyNfcButton");
-        if (!btn) return;
-        const original = btn.textContent;
-        btn.textContent = "Copied";
-        setTimeout(() => btn.textContent = original, 1200);
+        alert("Copied suggested public URL:\n" + url);
       }).catch(() => {
-        alert("Could not copy the NFC URL automatically.");
+        alert("Suggested public URL:\n" + url);
       });
     }
 
-    function renderDetail() {
-      const panel = document.getElementById("detailPanel");
-      const tree = filteredTrees.find(item => item.__record_key === selectedKey);
-      if (!tree) {
-        panel.innerHTML = `<div class="detail-empty">Select a tree to view its details.</div>`;
-        return;
-      }
-      const name = getTreeDisplayName(tree);
-      const nfcUrl = getNfcUrl(tree);
-      panel.innerHTML = `
-        <div class="title-row">
-          <div>
-            <h2>${escapeHtml(name)}</h2>
-            <div class="subchips">
-              ${normalizeText(tree.Tree_ID) ? `<span class="chip">Tree_ID: ${escapeHtml(tree.Tree_ID)}</span>` : ``}
-              <span class="chip">${escapeHtml(getCampus(tree))}</span>
-            </div>
-          </div>
-        </div>
+    searchBox.addEventListener("input", renderList);
+    speciesFilter.addEventListener("change", renderList);
+    healthFilter.addEventListener("change", renderList);
+    unlockBtn.addEventListener("click", unlockAdmin);
+    saveTreeBtn.addEventListener("click", saveSelectedTree);
+    downloadCsvBtn.addEventListener("click", downloadCsv);
+    csvUpload.addEventListener("change", handleLocalCsvUpload);
 
-        <div class="actions">
-          <a class="btn btn-primary" href="${escapeHtml(getViewerUrl(tree))}">Open Tree Page</a>
-          <button class="btn btn-secondary" id="mapButton" type="button">Show on Map</button>
-        </div>
-
-        <div class="nfc-box">
-          <div class="nfc-label">NFC URL</div>
-          <div class="nfc-row">
-            <div class="nfc-url">${escapeHtml(nfcUrl)}</div>
-            <button class="btn btn-soft" id="copyNfcButton" type="button">Copy NFC URL</button>
-          </div>
-        </div>
-
-        <div class="fields">
-          ${renderFields(tree)}
-        </div>
-      `;
-      document.getElementById("mapButton").addEventListener("click", () => openMapForTree(tree));
-      document.getElementById("copyNfcButton").addEventListener("click", () => copyNfcUrl(tree));
-    }
-
-    async function init() {
-      try {
-        allTrees = await loadWorkbookRows();
-        buildStats();
-        buildCampusFilter();
-        document.getElementById("searchInput").addEventListener("input", applyFilters);
-        document.getElementById("campusFilter").addEventListener("change", applyFilters);
-        applyFilters();
-      } catch (error) {
-        document.getElementById("listStatus").textContent = "Could not load the Excel file.";
-        document.getElementById("detailPanel").innerHTML = `<div class="detail-empty">${escapeHtml(error.message)}</div>`;
-      }
-    }
-
-    init();
+    loadDefaultCsvIfAvailable();
   </script>
 </body>
 </html>
