@@ -3,42 +3,288 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tree Detail</title>
+  <title>Tree Viewer | Salem State University Tree Database</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
-    :root{--bg:#f5f7fb;--card:#ffffff;--line:#d8dfeb;--text:#12233d;--muted:#5e6f8c;--navy:#002855;--navy-2:#0a3970;--orange:#f58220;--shadow:0 14px 34px rgba(0,33,71,.10)}
-    *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--text);background:linear-gradient(180deg,#eef3fb 0%, var(--bg) 100%)}
-    .wrap{max-width:900px;margin:0 auto;padding:24px 16px 56px}.card{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
-    .hero{background:linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);color:#fff;padding:28px}.hero h1{margin:0 0 8px;font-size:clamp(28px,5vw,42px)}.hero p{margin:0;color:#dbe7f7}
-    .body{padding:22px}.tag{display:inline-block;background:#e8f0fb;color:var(--navy);padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px}
-    .latin{margin:0 0 16px;font-style:italic;color:var(--muted);font-size:19px}.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}
-    .stat{border:1px solid var(--line);border-radius:16px;padding:14px;background:#fbfcff}.label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}.value{font-size:18px;font-weight:700}
-    .desc{line-height:1.65;white-space:pre-wrap}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;cursor:pointer;text-decoration:none;padding:14px 16px;border-radius:14px;border:1px solid var(--line);background:#fff;color:var(--navy)}
-    .button.primary{background:var(--navy);color:#fff;border-color:var(--navy)} .muted-box{margin-top:16px;padding:14px;border-radius:14px;background:#f8fafd;border:1px dashed var(--line);color:var(--muted);font-size:14px;line-height:1.55}
-    code{background:#eef3fb;color:var(--navy);padding:2px 6px;border-radius:6px;word-break:break-all}
-    @media (max-width:720px){.stats{grid-template-columns:1fr}}
+    :root{
+      --navy:#0f2847;
+      --navy-2:#17375f;
+      --orange:#f47c20;
+      --line:#d7dde6;
+      --card:#ffffff;
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --shadow:0 10px 24px rgba(15,40,71,.08);
+      --radius:20px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      color:var(--ink);
+      background:linear-gradient(180deg,#f4f7fb 0%, #eef3f9 100%);
+    }
+    .shell{
+      max-width:980px;
+      margin:0 auto;
+      padding:24px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid rgba(15,40,71,.08);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .hero{
+      background:linear-gradient(135deg,var(--navy) 0%, var(--navy-2) 100%);
+      color:#fff;
+      padding:28px;
+    }
+    .hero h1{
+      margin:0;
+      font-size:clamp(2rem, 3.2vw, 2.7rem);
+      line-height:1.08;
+    }
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.18);
+      font-size:.94rem;
+      color:#fff;
+    }
+    .body{
+      padding:22px;
+    }
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:18px;
+    }
+    .btn{
+      appearance:none;
+      border:none;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:12px 16px;
+      border-radius:12px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .btn-primary{ background:var(--orange); color:#fff; }
+    .fields{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+      gap:12px;
+    }
+    .field{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      background:#fff;
+      min-height:88px;
+    }
+    .field-label{
+      font-size:.82rem;
+      color:var(--muted);
+      margin-bottom:8px;
+      word-break:break-word;
+    }
+    .field-value{
+      font-size:1rem;
+      font-weight:700;
+      line-height:1.35;
+      word-break:break-word;
+    }
+    .message{
+      padding:40px 24px;
+      color:var(--muted);
+      font-size:1rem;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
+  <div class="shell">
+    <section class="card">
       <div class="hero">
-        <h1 id="title">Loading tree...</h1>
-        
+        <h1 id="treeTitle">Loading tree...</h1>
+        <div class="chips" id="heroChips"></div>
       </div>
-      <div id="body" class="body">Loading record…</div>
-    </div>
+      <div class="body" id="viewerBody">
+        <div class="actions">
+          <button class="btn btn-primary" id="mapButton" type="button">Show on Map</button>
+        </div>
+        <div class="message">Loading Excel data...</div>
+      </div>
+    </section>
   </div>
-<script>
-const DEFAULT_CSV_CANDIDATES = ["fake_tree_health_master.csv", "trees.csv"];
-const CAMPUS_MAP_URL = "https://your-arcgis-map-url";
-function normalizeKey(s){return String(s||"").trim().toLowerCase().replace(/[^\w]+/g,"_").replace(/^_+|_+$/g,"")}
-function escapeHtml(str){return String(str||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;")}
-function csvToObjects(text){const rows=[];let row=[],field="",inQuotes=false;for(let i=0;i<text.length;i++){const char=text[i],next=text[i+1];if(char==='"'){if(inQuotes&&next==='"'){field+='"';i++;}else{inQuotes=!inQuotes;}}else if(char===","&&!inQuotes){row.push(field);field="";}else if((char==="\n"||char==="\r")&&!inQuotes){if(char==="\r"&&next==="\n")i++;row.push(field);if(row.some(cell=>String(cell).trim()!==""))rows.push(row);row=[];field="";}else{field+=char;}}if(field.length||row.length){row.push(field);if(row.some(cell=>String(cell).trim()!==""))rows.push(row);}if(!rows.length)return[];const headers=rows[0].map(h=>normalizeKey(h));return rows.slice(1).map(cols=>{const obj={};headers.forEach((h,idx)=>obj[h]=(cols[idx]||"").trim());return obj;});}
-function remapTree(obj){const notesParts=[obj.notes||obj.description||"",obj.canopy_condition?`Canopy: ${obj.canopy_condition}`:"",obj.trunk_condition?`Trunk: ${obj.trunk_condition}`:"",obj.pest_or_disease_notes?`Pest/Disease: ${obj.pest_or_disease_notes}`:"",obj.recommended_action?`Recommended action: ${obj.recommended_action}`:""];return{tree_id:obj.tree_id||obj.id||"",page_slug:obj.page_slug||"",common_name:obj.common_name||obj.tree_name||obj.name||"",scientific_name:obj.scientific_name||obj.species||"",health:obj.health||obj.health_status||obj.condition||"",health_score:obj.health_score||"",last_inspection_date:obj.last_inspection_date||"",location_name:obj.location_name||obj.location_zone||obj.location||"",notes:notesParts.filter(Boolean).join("\n"),recommended_action:obj.recommended_action||"",lat:obj.lat||obj.latitude||"",lon:obj.lon||obj.longitude||"",map_link:obj.map_link||""};}
-function makeMapLink(tree){if(tree.map_link)return tree.map_link;if(CAMPUS_MAP_URL) return CAMPUS_MAP_URL;if(tree.lat&&tree.lon)return `https://maps.google.com/?q=${encodeURIComponent(tree.lat)},${encodeURIComponent(tree.lon)}`;return "#";}
-async function loadTrees(){for(const filename of DEFAULT_CSV_CANDIDATES){try{const res=await fetch(filename,{cache:"no-store"});if(!res.ok)throw new Error();const text=await res.text();const parsed=csvToObjects(text).map(remapTree).filter(t=>t.tree_id);if(parsed.length)return parsed;}catch(err){}}return [];}
-function renderTree(tree){document.getElementById('title').textContent=tree.common_name||tree.tree_id||'Tree';const mapLink=makeMapLink(tree);document.getElementById('body').innerHTML=`<div class="tag">Tree ID: ${escapeHtml(tree.tree_id || "N/A")}</div><p class="latin">${escapeHtml(tree.scientific_name || "Species coming later")}</p><div class="stats"><div class="stat"><div class="label">Health</div><div class="value">${escapeHtml(tree.health||"—")}</div></div><div class="stat"><div class="label">Health Score</div><div class="value">${escapeHtml(tree.health_score||"—")}</div></div><div class="stat"><div class="label">Last Inspection</div><div class="value">${escapeHtml(tree.last_inspection_date||"—")}</div></div><div class="stat"><div class="label">Location</div><div class="value">${escapeHtml(tree.location_name||"—")}</div></div></div><div class="desc">${escapeHtml(tree.notes||"No notes available.")}</div><div class="actions">${mapLink?`<a class="button" target="_blank" rel="noopener noreferrer" href="${escapeHtml(mapLink)}">Show on Map</a>`:''}</div>`;}
-(async()=>{const params=new URLSearchParams(window.location.search);const id=(params.get('id')||'').trim();const trees=await loadTrees();if(!trees.length){document.getElementById('title').textContent='No CSV found';document.getElementById('body').innerHTML='<div class="muted-box">Put <code>fake_tree_health_master.csv</code> beside this file so the page can load real tree data.</div>';return;}const tree=trees.find(t=>t.tree_id===id||t.page_slug===id);if(!tree){document.getElementById('title').textContent='Tree not found';document.getElementById('body').innerHTML=`<div class="muted-box">No tree matched <code>${escapeHtml(id)}</code>.</div>`;return;}renderTree(tree);})();
-</script>
+
+  <script>
+    const WORKBOOK_FILE = "./officialtreedatabase_NFC.xlsx";
+    const SHEET_NAME = "officialtreedatabase_NFC";
+    const CAMPUS_MAP_URLS = {
+      "north campus": "",
+      "south campus": ""
+    };
+
+    function normalizeText(value) {
+      return String(value ?? "").trim();
+    }
+
+    function normalizeCampus(value) {
+      return normalizeText(value).toLowerCase();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function formatValue(value) {
+      if (value === null || value === undefined || value === "") return "";
+      if (typeof value === "number") {
+        return Number.isInteger(value) ? String(value) : value.toFixed(2).replace(/\.00$/, "");
+      }
+      return String(value);
+    }
+
+    function getTreeDisplayName(tree) {
+      return normalizeText(tree.Tree_Spe_1) || normalizeText(tree.Tree_ID) || "Unnamed tree";
+    }
+
+    function getCampus(tree) {
+      return normalizeText(tree["Campus/Location"]) || "Unknown campus";
+    }
+
+    function getMapUrl(tree) {
+      const directFields = ["map_url", "map_link", "Map_URL", "Map_Link", "arcgis_url", "ArcGIS_URL"];
+      for (const field of directFields) {
+        if (normalizeText(tree[field])) return normalizeText(tree[field]);
+      }
+      const campusKey = normalizeCampus(tree["Campus/Location"]);
+      if (CAMPUS_MAP_URLS[campusKey]) return CAMPUS_MAP_URLS[campusKey];
+      return "";
+    }
+
+    function openMapForTree(tree) {
+      const url = getMapUrl(tree);
+      if (url) {
+        window.open(url, "_blank", "noopener");
+      } else {
+        alert("Map link placeholder only for now. Add your ArcGIS URL in the page file when you're ready.");
+      }
+    }
+
+    function dedupeExactRows(rows) {
+      const seen = new Set();
+      return rows.filter(row => {
+        const signature = JSON.stringify(row);
+        if (seen.has(signature)) return false;
+        seen.add(signature);
+        return true;
+      });
+    }
+
+    function addRecordKeys(rows) {
+      const idCounts = {};
+      rows.forEach(row => {
+        const id = normalizeText(row.Tree_ID);
+        if (!id) return;
+        idCounts[id] = (idCounts[id] || 0) + 1;
+      });
+      return rows.map((row, index) => {
+        const id = normalizeText(row.Tree_ID);
+        const sourceRow = row.__source_row || (index + 2);
+        const recordKey = id && idCounts[id] === 1 ? id : `${id || "ROW"}-${sourceRow}`;
+        return { ...row, __record_key: recordKey };
+      });
+    }
+
+    async function loadWorkbookRows() {
+      const response = await fetch(WORKBOOK_FILE, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Could not load ${WORKBOOK_FILE}`);
+      const buffer = await response.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      const sheet = workbook.Sheets[SHEET_NAME] || workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+      rows.forEach((row, idx) => row.__source_row = idx + 2);
+      return addRecordKeys(dedupeExactRows(rows));
+    }
+
+    function renderFields(tree) {
+      const hiddenKeys = new Set(["__record_key", "__source_row"]);
+      const entries = Object.entries(tree)
+        .filter(([key, value]) => !hiddenKeys.has(key) && normalizeText(value) !== "");
+      return entries.map(([key, value]) => `
+        <div class="field">
+          <div class="field-label">${escapeHtml(key)}</div>
+          <div class="field-value">${escapeHtml(formatValue(value))}</div>
+        </div>
+      `).join("");
+    }
+
+    function setTitle(tree) {
+      const name = getTreeDisplayName(tree);
+      document.getElementById("treeTitle").textContent = name;
+      document.title = `${name} | Salem State University Tree Database`;
+      document.getElementById("heroChips").innerHTML = [
+        normalizeText(tree.Tree_ID) ? `<span class="chip">Tree_ID: ${escapeHtml(tree.Tree_ID)}</span>` : ``,
+        `<span class="chip">${escapeHtml(getCampus(tree))}</span>`
+      ].filter(Boolean).join("");
+    }
+
+    async function init() {
+      const params = new URLSearchParams(window.location.search);
+      const key = normalizeText(params.get("key"));
+      const body = document.getElementById("viewerBody");
+
+      if (!key) {
+        body.innerHTML = `<div class="message">No tree key was provided in the page URL.</div>`;
+        return;
+      }
+
+      try {
+        const rows = await loadWorkbookRows();
+        const tree = rows.find(row => row.__record_key === key);
+        if (!tree) {
+          body.innerHTML = `<div class="message">This tree could not be found in the workbook.</div>`;
+          return;
+        }
+
+        setTitle(tree);
+        body.innerHTML = `
+          <div class="actions">
+            <button class="btn btn-primary" id="mapButton" type="button">Show on Map</button>
+          </div>
+          <div class="fields">
+            ${renderFields(tree)}
+          </div>
+        `;
+
+        document.getElementById("mapButton").addEventListener("click", () => openMapForTree(tree));
+      } catch (error) {
+        body.innerHTML = `<div class="message">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    init();
+  </script>
 </body>
 </html>
