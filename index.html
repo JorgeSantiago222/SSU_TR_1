@@ -36,10 +36,23 @@
     .sub{margin-top:8px;color:rgba(255,255,255,.84)}
     main{padding:24px 20px 40px}
     .toolbar{
-      display:grid;grid-template-columns:1.6fr 1fr 1fr auto;gap:14px;
+      display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:14px;
       background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-      padding:16px;box-shadow:var(--shadow);margin-bottom:18px;
+      padding:18px;box-shadow:var(--shadow);margin-bottom:10px;
       align-items:end;
+    }
+    .toolbar-title{
+      grid-column:1 / -1;
+      font-weight:700;
+      color:var(--navy);
+      font-size:1rem;
+      margin-bottom:2px;
+    }
+    .toolbar-footer{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:.95rem;
+      padding:0 4px;
     }
     .field label{display:block;font-size:.82rem;font-weight:700;color:var(--muted);margin-bottom:6px}
     .field input,.field select{
@@ -116,6 +129,7 @@
 
   <main>
     <section class="toolbar">
+      <div class="toolbar-title">Filter the tree list</div>
       <div class="field">
         <label for="searchInput">Search trees</label>
         <input id="searchInput" type="search" placeholder="Search by tree name, ID, genus, condition, or campus" />
@@ -127,13 +141,13 @@
         </select>
       </div>
       <div class="field">
-        <label for="typeSelect">Tree type</label>
+        <label for="typeSelect">Tree species</label>
         <select id="typeSelect">
-          <option value="">All tree types</option>
+          <option value="">All tree species</option>
         </select>
       </div>
-      <div class="stats" id="statsText">Loading trees…</div>
     </section>
+    <div class="toolbar-footer" id="statsText">Loading trees…</div>
 
     <section class="layout">
       <div class="panel">
