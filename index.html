@@ -36,7 +36,7 @@
     .sub{margin-top:8px;color:rgba(255,255,255,.84)}
     main{padding:24px 20px 40px}
     .toolbar{
-      display:grid;grid-template-columns:1.6fr 1fr auto;gap:14px;
+      display:grid;grid-template-columns:1.6fr 1fr 1fr auto;gap:14px;
       background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
       padding:16px;box-shadow:var(--shadow);margin-bottom:18px;
       align-items:end;
@@ -126,6 +126,12 @@
           <option value="">All campuses</option>
         </select>
       </div>
+      <div class="field">
+        <label for="typeSelect">Tree type</label>
+        <select id="typeSelect">
+          <option value="">All tree types</option>
+        </select>
+      </div>
       <div class="stats" id="statsText">Loading trees…</div>
     </section>
 
@@ -182,6 +188,10 @@
       return id && id.toLowerCase() !== "nan" ? id : "";
     }
 
+    function treeType(row){
+      return normalizeValue(row["Tree_Spe_1"]);
+    }
+
     function treeKey(row, index){
       return `row-${index + 2}`;
     }
@@ -235,16 +245,21 @@
     function applyFilters(){
       const search = document.getElementById("searchInput").value.trim().toLowerCase();
       const campus = document.getElementById("campusSelect").value;
+      const type = document.getElementById("typeSelect").value;
 
       filteredTrees = allTrees.filter(tree => {
         const campusMatch = !campus || campusValue(tree) === campus;
         if (!campusMatch) return false;
+
+        const typeMatch = !type || treeType(tree) === type;
+        if (!typeMatch) return false;
 
         if (!search) return true;
 
         const haystack = [
           displayName(tree),
           treeId(tree),
+          treeType(tree),
           normalizeValue(tree["genus"]),
           normalizeValue(tree["Condition"]),
           normalizeValue(tree["Campus/Location"])
@@ -276,6 +291,17 @@
         const option = document.createElement("option");
         option.value = campus;
         option.textContent = campus;
+        select.appendChild(option);
+      }
+    }
+
+    function renderTypeOptions(){
+      const select = document.getElementById("typeSelect");
+      const types = [...new Set(allTrees.map(treeType).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+      for (const type of types){
+        const option = document.createElement("option");
+        option.value = type;
+        option.textContent = type;
         select.appendChild(option);
       }
     }
@@ -381,10 +407,12 @@
       try{
         allTrees = await loadWorkbook();
         renderCampusOptions();
+        renderTypeOptions();
         selectedKey = allTrees[0]?.__key || null;
 
         document.getElementById("searchInput").addEventListener("input", applyFilters);
         document.getElementById("campusSelect").addEventListener("change", applyFilters);
+        document.getElementById("typeSelect").addEventListener("change", applyFilters);
 
         applyFilters();
       }catch(error){
