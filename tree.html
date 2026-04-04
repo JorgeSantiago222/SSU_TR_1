@@ -66,14 +66,17 @@
     </div>
   </div>
 
+
   <script>
     const WORKBOOK_FILE = "./officialtreedatabase_NFC.xlsx";
     const CAMPUS_MAP_URL = "#";
+    const TITLE_FIELD = "Tree_Spe_1";
 
     function normalizeValue(value){
       if (value === null || value === undefined) return "";
-      if (typeof value === "number") {
-        return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(2)));
+      if (typeof value === "number"){
+        if (Number.isNaN(value)) return "";
+        return Number.isInteger(value) ? String(value) : String(value);
       }
       return String(value).trim();
     }
@@ -90,8 +93,12 @@
       return id && id.toLowerCase() !== "nan" ? id : "";
     }
 
+    function canonicalId(id){
+      return normalizeValue(id).toLowerCase();
+    }
+
     function displayName(row){
-      return normalizeValue(row["Tree_Spe_1"]) || treeId(row) || "Unnamed tree";
+      return normalizeValue(row[TITLE_FIELD]) || treeId(row) || "Unnamed tree";
     }
 
     function campusValue(row){
@@ -130,10 +137,41 @@
       }));
     }
 
-    function getRequestedRow(){
+    function buildIdCounts(rows){
+      const counts = new Map();
+      rows.forEach(row => {
+        const id = canonicalId(treeId(row));
+        if (!id) return;
+        counts.set(id, (counts.get(id) || 0) + 1);
+      });
+      return counts;
+    }
+
+    function getRequestedTarget(){
       const params = new URLSearchParams(window.location.search);
-      const row = Number(params.get("row"));
-      return Number.isFinite(row) && row >= 2 ? row : null;
+      const id = normalizeValue(params.get("id"));
+      const rowValue = Number(params.get("row"));
+      const row = Number.isFinite(rowValue) && rowValue >= 2 ? rowValue : null;
+      return { id, row };
+    }
+
+    function findTree(rows, target){
+      const counts = buildIdCounts(rows);
+
+      if (target.id){
+        const idKey = canonicalId(target.id);
+        if (counts.get(idKey) === 1){
+          const match = rows.find(row => canonicalId(treeId(row)) === idKey);
+          if (match) return match;
+        }
+      }
+
+      if (target.row){
+        const rowMatch = rows.find(row => row.__rowNumber === target.row);
+        if (rowMatch) return rowMatch;
+      }
+
+      return null;
     }
 
     function renderTree(tree){
@@ -143,7 +181,7 @@
 
       const cards = Object.entries(tree)
         .filter(([key, value]) => {
-          if (key === "__rowNumber" || key === "Tree_Spe_1") return false;
+          if (key === "__rowNumber" || key === TITLE_FIELD) return false;
           const cleaned = normalizeValue(value);
           return cleaned && cleaned.toLowerCase() !== "nan";
         })
@@ -181,31 +219,30 @@
       });
     }
 
+    function renderError(message){
+      document.getElementById("app").innerHTML = `<div class="error">${escapeHtml(message)}</div>`;
+    }
+
     async function init(){
-      const app = document.getElementById("app");
       try{
         const rows = await loadRows();
-        const rowNumber = getRequestedRow();
-        const tree = rows.find(item => item.__rowNumber === rowNumber) || rows[0];
+        const target = getRequestedTarget();
+        const tree = findTree(rows, target);
 
         if (!tree){
-          app.innerHTML = '<div class="state">No tree records were found in the workbook.</div>';
+          renderError("Tree not found. This tree page needs a unique Tree ID, or a row fallback when the Tree ID is missing or repeated.");
           return;
         }
 
         renderTree(tree);
       }catch(error){
         console.error(error);
-        app.innerHTML = `
-          <div class="error">
-            Could not load the workbook. Make sure <strong>officialtreedatabase_NFC.xlsx</strong>
-            is in the same folder as this page and open the site through GitHub Pages.
-          </div>
-        `;
+        renderError(error.message || "Could not load the workbook.");
       }
     }
 
     init();
   </script>
+
 </body>
 </html>

@@ -101,6 +101,7 @@
       display:block;white-space:nowrap;overflow:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
       font-size:.86rem;color:var(--navy)
     }
+    .detail-note{margin-top:10px;font-size:.88rem;color:var(--muted);line-height:1.45}
     .grid{
       display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;
     }
@@ -165,6 +166,7 @@
     </section>
   </main>
 
+
   <script>
     const WORKBOOK_FILE = "./officialtreedatabase_NFC.xlsx";
     const CAMPUS_MAP_URL = "#";
@@ -173,6 +175,7 @@
     let allTrees = [];
     let filteredTrees = [];
     let selectedKey = null;
+    const treeIdCounts = new Map();
 
     function formatLabel(label){
       return String(label || "")
@@ -183,8 +186,10 @@
 
     function normalizeValue(value){
       if (value === null || value === undefined) return "";
-      if (typeof value === "number") {
-        return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(2)));
+      if (typeof value === "number"){
+        if (Number.isNaN(value)) return "";
+        if (Number.isInteger(value)) return String(value);
+        return String(value);
       }
       return String(value).trim();
     }
@@ -206,14 +211,41 @@
       return normalizeValue(row["Tree_Spe_1"]);
     }
 
-    function treeKey(row, index){
-      return `row-${index + 2}`;
+    function canonicalId(id){
+      return normalizeValue(id).toLowerCase();
+    }
+
+    function buildTreeIdCounts(rows){
+      treeIdCounts.clear();
+      rows.forEach(row => {
+        const id = canonicalId(treeId(row));
+        if (!id) return;
+        treeIdCounts.set(id, (treeIdCounts.get(id) || 0) + 1);
+      });
+    }
+
+    function hasUniqueTreeId(row){
+      const id = canonicalId(treeId(row));
+      return !!id && treeIdCounts.get(id) === 1;
+    }
+
+    function treeLookupKey(row){
+      if (hasUniqueTreeId(row)) return `id:${canonicalId(treeId(row))}`;
+      return `row:${row.__rowNumber}`;
+    }
+
+    function treeHref(tree){
+      const url = new URL("./tree.html", window.location.href);
+      if (hasUniqueTreeId(tree)){
+        url.searchParams.set("id", treeId(tree));
+      } else {
+        url.searchParams.set("row", tree.__rowNumber);
+      }
+      return url;
     }
 
     function publicTreeUrl(tree){
-      const url = new URL("./tree.html", window.location.href);
-      url.searchParams.set("row", tree.__rowNumber);
-      return url.toString();
+      return treeHref(tree).toString();
     }
 
     function mapUrlForTree(tree){
@@ -228,7 +260,7 @@
     }
 
     function viewableEntries(tree){
-      const hidden = new Set(["__key","__rowNumber"]);
+      const hidden = new Set(["__lookupKey","__rowNumber"]);
       const titleField = "Tree_Spe_1";
       return Object.entries(tree).filter(([key, value]) => {
         if (hidden.has(key)) return false;
@@ -247,12 +279,16 @@
       const workbook = XLSX.read(buffer, { type: "array" });
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-
-      return rows.map((row, index) => ({
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" }).map((row, index) => ({
         ...row,
-        __key: treeKey(row, index),
         __rowNumber: index + 2
+      }));
+
+      buildTreeIdCounts(rows);
+
+      return rows.map(row => ({
+        ...row,
+        __lookupKey: treeLookupKey(row)
       }));
     }
 
@@ -262,40 +298,29 @@
       const type = document.getElementById("typeSelect").value;
 
       filteredTrees = allTrees.filter(tree => {
-        const campusMatch = !campus || campusValue(tree) === campus;
-        if (!campusMatch) return false;
-
-        const typeMatch = !type || treeType(tree) === type;
-        if (!typeMatch) return false;
-
-        if (!search) return true;
-
+        const matchesCampus = !campus || campusValue(tree) === campus;
+        const matchesType = !type || treeType(tree) === type;
         const haystack = [
           displayName(tree),
           treeId(tree),
-          treeType(tree),
-          normalizeValue(tree["genus"]),
+          campusValue(tree),
           normalizeValue(tree["Condition"]),
-          normalizeValue(tree["Campus/Location"])
+          normalizeValue(tree["genus"]),
+          ...Object.values(tree).map(normalizeValue)
         ].join(" ").toLowerCase();
-
-        return haystack.includes(search);
+        const matchesSearch = !search || haystack.includes(search);
+        return matchesCampus && matchesType && matchesSearch;
       });
 
-      if (!filteredTrees.some(tree => tree.__key === selectedKey)) {
-        selectedKey = filteredTrees[0]?.__key || null;
+      if (!filteredTrees.some(tree => tree.__lookupKey === selectedKey)){
+        selectedKey = filteredTrees[0]?.__lookupKey || null;
       }
+
+      document.getElementById("statsText").textContent =
+        filteredTrees.length === 1 ? "1 tree shown" : `${filteredTrees.length} trees shown`;
 
       renderList();
       renderDetail();
-      renderStats();
-    }
-
-    function renderStats(){
-      const count = filteredTrees.length;
-      const total = allTrees.length;
-      document.getElementById("statsText").textContent =
-        `${count} of ${total} trees`;
     }
 
     function renderCampusOptions(){
@@ -334,9 +359,9 @@
       filteredTrees.forEach(tree => {
         const button = document.createElement("button");
         button.type = "button";
-        button.className = "tree-item" + (tree.__key === selectedKey ? " active" : "");
+        button.className = "tree-item" + (tree.__lookupKey === selectedKey ? " active" : "");
         button.addEventListener("click", () => {
-          selectedKey = tree.__key;
+          selectedKey = tree.__lookupKey;
           renderList();
           renderDetail();
         });
@@ -361,7 +386,7 @@
 
     function renderDetail(){
       const panel = document.getElementById("detailPanel");
-      const tree = filteredTrees.find(item => item.__key === selectedKey);
+      const tree = filteredTrees.find(item => item.__lookupKey === selectedKey);
 
       if (!tree){
         panel.innerHTML = '<div class="empty">Select a tree to view its details.</div>';
@@ -369,7 +394,7 @@
       }
 
       const idText = treeId(tree) || `Row ${tree.__rowNumber}`;
-      const url = publicTreeUrl(tree);
+      const pageUrl = publicTreeUrl(tree);
       const mapUrl = mapUrlForTree(tree);
       const cards = viewableEntries(tree).map(([label, value]) => `
         <div class="info-card">
@@ -377,6 +402,12 @@
           <div class="value">${escapeHtml(normalizeValue(value))}</div>
         </div>
       `).join("");
+
+      const linkModeNote = hasUniqueTreeId(tree)
+        ? ""
+        : `<div class="detail-note">This record does not have a unique Tree ID, so its tree page and NFC link use the spreadsheet row as a fallback.</div>`;
+
+      const href = treeHref(tree);
 
       panel.innerHTML = `
         <h2>${escapeHtml(displayName(tree))}</h2>
@@ -386,13 +417,14 @@
         </div>
 
         <div class="actions">
-          <a class="button primary" href="./tree.html?row=${encodeURIComponent(tree.__rowNumber)}">Open Tree Page</a>
+          <a class="button primary" href="${escapeHtml(href.pathname + href.search)}">Open Tree Page</a>
           <button class="button secondary" type="button" id="mapButton">Show on Map</button>
         </div>
 
         <div class="url-box">
           <label>NFC / public tree link</label>
-          <code>${escapeHtml(url)}</code>
+          <code>${escapeHtml(pageUrl)}</code>
+          ${linkModeNote}
         </div>
 
         <div class="grid">${cards}</div>
@@ -422,7 +454,7 @@
         allTrees = await loadWorkbook();
         renderCampusOptions();
         renderTypeOptions();
-        selectedKey = allTrees[0]?.__key || null;
+        selectedKey = allTrees[0]?.__lookupKey || null;
 
         document.getElementById("searchInput").addEventListener("input", applyFilters);
         document.getElementById("campusSelect").addEventListener("change", applyFilters);
@@ -446,5 +478,6 @@
 
     init();
   </script>
+
 </body>
 </html>
