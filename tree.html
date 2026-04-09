@@ -70,7 +70,10 @@
   <script>
     const WORKBOOK_FILE = "./officialtreedatabase_NFC.xlsx";
     const CAMPUS_MAP_URL = "#";
+    const CENTRAL_CAMPUS_MAP_URL = "https://dgl-ssu.maps.arcgis.com/apps/instant/basic/index.html?appid=1fb092ebde5142939b6b6a982a01f423";
+    const CENTRAL_CAMPUS_TREE_PARAM = "treeid";
     const TITLE_FIELD = "Tree_Spe_1";
+    let treeIdCounts = new Map();
 
     function normalizeValue(value){
       if (value === null || value === undefined) return "";
@@ -105,6 +108,28 @@
       return normalizeValue(row["Campus/Location"]);
     }
 
+    function campusHasCentralMap(tree){
+      const campus = campusValue(tree).toLowerCase();
+      return campus.includes("central") || campus.includes("south");
+    }
+
+    function centralCampusMapUrlForTree(tree){
+      if (!campusHasCentralMap(tree)) return "";
+
+      const baseUrl = CENTRAL_CAMPUS_MAP_URL;
+      if (!baseUrl || baseUrl === "#") return "";
+
+      const id = treeId(tree);
+      const idKey = canonicalId(id);
+      const canTargetById = id && treeIdCounts.get(idKey) === 1;
+
+      if (!canTargetById) return baseUrl;
+
+      const separator = baseUrl.includes("?") ? "&" : "?";
+      const encodedId = encodeURIComponent(id);
+      return `${baseUrl}${separator}find=${encodedId}&${CENTRAL_CAMPUS_TREE_PARAM}=${encodedId}`;
+    }
+
     function mapUrlForTree(tree){
       const directMap =
         normalizeValue(tree["map_url"]) ||
@@ -112,6 +137,10 @@
         normalizeValue(tree["Map_URL"]) ||
         normalizeValue(tree["ArcGIS_URL"]);
       if (directMap) return directMap;
+
+      const centralCampusUrl = centralCampusMapUrlForTree(tree);
+      if (centralCampusUrl) return centralCampusUrl;
+
       if (CAMPUS_MAP_URL && CAMPUS_MAP_URL !== "#") return CAMPUS_MAP_URL;
       return "";
     }
@@ -226,6 +255,7 @@
     async function init(){
       try{
         const rows = await loadRows();
+        treeIdCounts = buildIdCounts(rows);
         const target = getRequestedTarget();
         const tree = findTree(rows, target);
 
